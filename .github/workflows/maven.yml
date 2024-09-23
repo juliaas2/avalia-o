@@ -53,4 +53,4 @@ jobs:
         script: |
           sudo docker stop avaliacao
           sudo docker rm --force avaliacao
-          sudo docker run -d -p 8082:8082 --network=rede --name avaliacao juliaas2/avaliacao-ci:${{ github.sha }}
+          sudo docker run -d -p 8080:8080 --network=rede --name avaliacao juliaas2/avaliacao-ci:${{ github.sha }}
