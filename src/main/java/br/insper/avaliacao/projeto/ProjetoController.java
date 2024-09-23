@@ -19,8 +19,8 @@ public class ProjetoController {
         return projectService.listProjects(status);
     }
 
-    @PostMapping("/{projectId}/members")
-    public Projeto addMember(@PathVariable String projectId, @RequestBody String cpf) throws Exception {
+    @PostMapping("/projects/{projectId}/members")
+    public Projeto addMember(@PathVariable String projectId, @RequestParam String cpf) throws Exception {
         return projectService.addMember(projectId, cpf);
     }
 }
