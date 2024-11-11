@@ -13,9 +13,5 @@ import java.util.List;
 public class Projeto{
     @Id
     private String id;
-    private String name;
-    private String description;
-    private String status;
-    private String managerCpf;
-    private List<String> members = new ArrayList<>();
+    
 }
