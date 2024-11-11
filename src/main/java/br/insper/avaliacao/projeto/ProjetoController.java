@@ -23,5 +23,10 @@ public class ProjetoController {
     public Projeto addMember(@PathVariable String projectId, @RequestParam String cpf) throws Exception {
         return projectService.addMember(projectId, cpf);
     }
+    // rota Hello World
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello World!";
+    }
 }
 
