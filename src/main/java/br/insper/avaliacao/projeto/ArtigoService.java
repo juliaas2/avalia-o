@@ -1,6 +1,6 @@
 package br.insper.avaliacao.projeto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -59,8 +59,23 @@ public class ArtigoService {
     private String getRoleFromToken(String token) {
         RestTemplate restTemplate = new RestTemplate();
         try {
-            var response = restTemplate.getForObject(VALIDATE_API, Map.class);
-            return (String) response.get("papel");
+            // Configura o cabeçalho da requisição com o token de autorização
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", token);
+
+            // Cria uma entidade Http com o cabeçalho configurado
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            // Faz a requisição HTTP para o endpoint VALIDATE_API usando o cabeçalho com o token
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    VALIDATE_API, // URL de validação do token
+                    HttpMethod.GET, // Método HTTP
+                    entity, // Entidade com o cabeçalho
+                    Map.class // Tipo de resposta esperada
+            );
+
+            // Obtém o campo "papel" do corpo da resposta
+            return (String) response.getBody().get("papel");
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido");
         }
