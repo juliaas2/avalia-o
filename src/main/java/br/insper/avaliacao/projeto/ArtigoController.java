@@ -1,32 +1,43 @@
 package br.insper.avaliacao.projeto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.util.Optional;
+import org.springframework.http.ResponseEntity;
+
 import java.util.List;
+import java.util.Optional;
+
 @RestController
-@RequestMapping("/projects")
-public class ProjetoController {
+@RequestMapping("/artigos")
+public class ArtigoController {
+
     @Autowired
-    private ProjetoService projectService;
+    private ArtigoService artigoService;
 
     @PostMapping
-    public Projeto createProject(@RequestBody Projeto project) throws Exception {
-        return projectService.createProject(project);
+    public ResponseEntity<Artigo> createArtigo(@RequestHeader("Authorization") String token, @RequestBody Artigo artigo) {
+        return ResponseEntity.ok(artigoService.createArtigo(artigo, token));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteArtigo(@RequestHeader("Authorization") String token, @PathVariable String id) {
+        artigoService.deleteArtigo(id, token);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public List<Projeto> listProjects(@RequestParam Optional<String> status) {
-        return projectService.listProjects(status);
+    public ResponseEntity<List<Artigo>> listArtigos(@RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok(artigoService.listArtigos(token));
     }
 
-    @PostMapping("/projects/{projectId}/members")
-    public Projeto addMember(@PathVariable String projectId, @RequestParam String cpf) throws Exception {
-        return projectService.addMember(projectId, cpf);
+    @GetMapping("/{id}")
+    public ResponseEntity<Optional<Artigo>> findArtigoById(@RequestHeader("Authorization") String token, @PathVariable String id) {
+        return ResponseEntity.ok(artigoService.findArtigoById(id, token));
     }
-    // rota Hello World
+
+    // hello world
     @GetMapping("/hello")
     public String hello() {
         return "Hello World!";
     }
 }
-

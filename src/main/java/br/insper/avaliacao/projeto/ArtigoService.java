@@ -1,54 +1,68 @@
 package br.insper.avaliacao.projeto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
-public class ProjetoService {
+public class ArtigoService {
 
     @Autowired
-    private ProjetoRepository projectRepository;
+    private ArtigoRepository artigoRepository;
 
-    private final String USER_API = "http://184.72.80.215:8080/usuario/";
+    private final String USER_API = "http://184.72.80.215/usuario";
+    private final String VALIDATE_API = "http://184.72.80.215/usuario/validate";
 
-    public Projeto createProject(Projeto project) throws Exception {
-        if (verifyUserExists(project.getManagerCpf())) {
-            return projectRepository.save(project);
+    public Artigo createArtigo(Artigo artigo, String token) {
+        if (isAdmin(token)) {
+            return artigoRepository.save(artigo);
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado");
+    }
+
+    public void deleteArtigo(String id, String token) {
+        if (isAdmin(token)) {
+            artigoRepository.deleteById(id);
         } else {
-            throw new Exception("Gerente não encontrado.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado");
         }
     }
 
-    public List<Projeto> listProjects(Optional<String> status) {
-        return status.map(projectRepository::findByStatus)
-                .orElse(projectRepository.findAll());
+    public List<Artigo> listArtigos(String token) {
+        if (isAuthorized(token)) {
+            return artigoRepository.findAll();
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado");
     }
 
-    public Projeto addMember(String projectId, String cpf) throws Exception {
-        if (!verifyUserExists(cpf)) {
-            throw new Exception("Pessoa não encontrada.");
+    public Optional<Artigo> findArtigoById(String id, String token) {
+        if (isAuthorized(token)) {
+            return artigoRepository.findById(id);
         }
-        Projeto project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new Exception("Projeto não encontrado."));
-
-        if (project.getStatus().equals("FINALIZADO")) {
-            throw new Exception("Projeto finalizado não pode receber novos membros.");
-        }
-
-        project.getMembers().add(cpf);
-        return projectRepository.save(project);
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso negado");
     }
 
-    private boolean verifyUserExists(String cpf) {
+    private boolean isAuthorized(String token) {
+        String role = getRoleFromToken(token);
+        return "ADMIN".equals(role) || "DEVELOPER".equals(role);
+    }
+
+    private boolean isAdmin(String token) {
+        return "ADMIN".equals(getRoleFromToken(token));
+    }
+
+    private String getRoleFromToken(String token) {
         RestTemplate restTemplate = new RestTemplate();
         try {
-            restTemplate.getForObject(USER_API + cpf, String.class);
-            return true;
+            var response = restTemplate.getForObject(VALIDATE_API, Map.class);
+            return (String) response.get("papel");
         } catch (Exception e) {
-            return false;
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido");
         }
     }
 }
